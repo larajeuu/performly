@@ -185,7 +185,7 @@ export default function LoginPage() {
                 <div className="blob blob-tl" />
                 <div className="blob blob-br" />
 
-                <div className="card">                      {/* ← card dibuka */}
+                <div className="card">                    
                     <div className="brand">
                         <div className="brand-logo">
                             <svg viewBox="0 0 32 32" fill="none">
@@ -232,10 +232,13 @@ export default function LoginPage() {
 
                         <p className="footer-note">
                             * Jika belum memiliki akun, silahkan <a href="/register">Daftar</a>
+                            <br/>
+                            * Lupa password? <a href="/forgot-password">Reset Password</a>
                         </p>
+
                     </form>
 
-                </div>                                       {/* ← card ditutup */}
+                </div>
             </div>
         </>
     );
