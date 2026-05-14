@@ -185,7 +185,7 @@ export default function LoginPage() {
                 <div className="blob blob-tl" />
                 <div className="blob blob-br" />
 
-                <div className="card">                    
+                <div className="card">
                     <div className="brand">
                         <div className="brand-logo">
                             <svg viewBox="0 0 32 32" fill="none">
@@ -237,7 +237,6 @@ export default function LoginPage() {
                         </p>
 
                     </form>
-
                 </div>
             </div>
         </>
