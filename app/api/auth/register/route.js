@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
-export async function POST(request: Request) {
+export async function POST(request) {
   try {
     // 1. Ambil data dari request
     const body = await request.json()
