@@ -1,41 +1,93 @@
-<<<<<<< HEAD
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Performly — HR Management Dashboard
 
-## Getting Started
+Performly adalah aplikasi HR Management Dashboard berbasis web yang dirancang untuk membantu pengelolaan data karyawan, payroll, performance KPI, attendance, dan analisis performa perusahaan secara modern dan terstruktur.
 
-First, run the development server:
+## ✨ Features
+
+- Authentication System
+  - Login
+  - Register HR Account
+  - Validation & Error Handling
+
+- Dashboard System
+  - Company Overview
+  - KPI Statistics
+  - Attendance Summary
+  - Payroll Monitoring
+
+- Employee Management
+  - Employee Data
+  - Employee Detail
+  - Position & Division
+
+- Payroll Management
+  - Salary Breakdown
+  - Bonus & Incentive
+  - Payroll Summary
+
+- Performance Management
+  - KPI Tracking
+  - Employee Performance Score
+
+## 🛠 Tech Stack
+
+### Frontend
+- Next.js App Router
+- React.js
+- Tailwind CSS
+- JavaScript
+
+### Backend
+- Next.js API Routes
+- Prisma ORM
+- PostgreSQL / Neon Database
+
+### Deployment
+- Vercel
+
+## 📁 Project Structure
+
+```bash
+app/
+components/
+services/
+lib/
+prisma/
+public/
+```
+
+## 🚀 Getting Started
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📌 Current Development
 
-## Learn More
+Project is currently under active development.
 
-To learn more about Next.js, take a look at the following resources:
+Upcoming features:
+- Dashboard Layout System
+- Sidebar Navigation
+- Attendance Management
+- Payroll Analytics
+- Role-based Access
+- KPI Visualization
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 👩‍💻 Developer
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-=======
-# performly
-🏢 Web-based HR Management System for employee performance assessment, salary calculation, and KPI tracking — built for Admin/HR access only.
->>>>>>> 0fec1342d317d219e6cbdb1236ca529ad1fa38c5
+Larasati Dwi Febriyanti
