@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
+    const router = useRouter();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -11,18 +13,41 @@ export default function LoginForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
-
+        
         if (!username || !password) {
             setError("Username dan password harus diisi");
             return;
         }
 
         setLoading(true);
-        await new Promise((r) => setTimeout(r, 1200));
-        setLoading(false);
 
-        console.log("Login dengan : ", username, password);
-    };
+        try {
+            const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username,
+                    password: String(password)
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setError(data.message || "Terjadi kesalahan");
+                return;
+            }
+
+             // Login berhasil → redirect ke dashboard
+            router.push("/dashboard");
+
+        } catch (err) {
+            setError("Gagal terhubung ke server");
+        } finally {
+            setLoading(false);
+        }
+    }
+    
 
     return (
         <>
