@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Payroll" ADD COLUMN     "uang_lembur" DOUBLE PRECISION NOT NULL DEFAULT 0;

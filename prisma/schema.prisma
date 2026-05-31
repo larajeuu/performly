@@ -24,4 +24,81 @@ model User {
   password       String
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
+
+  karyawan       Karyawan?
+}
+
+model Karyawan {
+  id          Int       @id @default(autoincrement())
+  user_id     Int       @unique
+  user        User      @relation(fields: [user_id], references: [id])
+  departemen  String
+  status      String    @default("Aktif")
+  foto        String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  payroll     Payroll[]
+  absensi     Absensi[]
+  kpi         KPI[]
+}
+
+model GajiJabatan {
+  id          Int       @id @default(autoincrement())
+  jabatan     String    @unique
+  gaji_pokok  Float
+  tunjangan   Float     @default(0)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+}
+
+model Payroll {
+  id                Int       @id @default(autoincrement())
+  karyawan_id       Int
+  karyawan          Karyawan  @relation(fields: [karyawan_id], references: [id])
+  bulan             Int
+  tahun             Int
+  gaji_pokok        Float
+  tunjangan         Float     @default(0)
+  uang_lembur       Float     @default(0)
+  bonus_absensi     Float     @default(0)
+  bonus_lainnya     Float     @default(0)
+  potongan_pajak    Float     @default(0)
+  potongan_asuransi Float     @default(0)
+  potongan_absensi  Float     @default(0)
+  gaji_bersih       Float
+  status            String    @default("Pending")
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  @@unique([karyawan_id, bulan, tahun])
+}
+
+model Absensi {
+  id           Int       @id @default(autoincrement())
+  karyawan_id  Int
+  karyawan     Karyawan  @relation(fields: [karyawan_id], references: [id])
+  tanggal      DateTime
+  status       String
+  keterangan   String?
+  created_at   DateTime  @default(now())
+
+  @@unique([karyawan_id, tanggal])
+}
+
+model KPI {
+  id                  Int       @id @default(autoincrement())
+  karyawan_id         Int
+  karyawan            Karyawan  @relation(fields: [karyawan_id], references: [id])
+  kuartal             Int
+  tahun               Int
+  skor_produktivitas  Float
+  skor_kualitas       Float
+  skor_kehadiran      Float
+  skor_akhir          Float
+  catatan             String?
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  @@unique([karyawan_id, kuartal, tahun])
 }
