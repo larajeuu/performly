@@ -8,6 +8,13 @@ export async function GET() {
     const tahunIni = sekarang.getFullYear()
     const kuartalIni = Math.ceil(bulanIni / 3)
 
+    const payrollTerbaru = await prisma.payroll.findFirst({
+      orderBy: [{ tahun: 'desc' }, { bulan: 'desc' }]
+    })
+
+    const bulanQuery = payrollTerbaru?.bulan ?? bulanIni
+    const tahunQuery = payrollTerbaru?.tahun ?? tahunIni
+
     // 1. Karyawan Aktif
     const karyawanAktif = await prisma.karyawan.count({
       where: { status: 'Aktif' }
@@ -28,8 +35,8 @@ export async function GET() {
     // 3. Total gaji bulan ini
     const payrollData = await prisma.payroll.findMany({
       where: {
-        bulan: bulanIni,
-        tahun: tahunIni
+        bulan: bulanQuery,
+        tahun: tahunQuery
       }
     })
 

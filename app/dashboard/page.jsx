@@ -1,25 +1,45 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import StatCards from "@/components/dashboard/StatCards";
 import KPIChart from "@/components/dashboard/KPIChart";
 import ScoreChart from "@/components/dashboard/ScoreChart";
 
 export default function DashboardPage() {
-  const stats = {
-    karyawan_aktif: 10,
-    rata_kpi: 87,
-    total_gaji: 76000000,
-    absensi: 80,
-    overall_score: 84.2,
-  };
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const kpiDepartemen = [
-    { departemen: "IT", skor: 75 },
-    { departemen: "Operasional", skor: 68 },
-    { departemen: "Marketing", skor: 88 },
-    { departemen: "Finance", skor: 82 },
-    { departemen: "HR", skor: 79 },
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/dashboard/stats");
+        const data = await res.json();
+        setStats(data);
+      } catch (err) {
+        console.error("Gagal fetch stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={{ color: '#6B7FCC', padding: '40px', textAlign: 'center' }}>
+        Memuat data dashboard...
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div style={{ color: '#FCA5A5', padding: '40px', textAlign: 'center' }}>
+        Gagal memuat data.
+      </div>
+    );
+  }
 
   return (
     <>
@@ -33,7 +53,7 @@ export default function DashboardPage() {
 
       <StatCards stats={stats} />
       <div className="charts-row">
-        <KPIChart data={kpiDepartemen} />
+        <KPIChart data={stats.kpi_per_departemen} />
         <ScoreChart value={stats.overall_score} />
       </div>
     </>
