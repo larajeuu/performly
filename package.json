@@ -28,5 +28,13 @@
     "eslint-config-next": "^15.3.3",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "seed": "node prisma/seed.js"
   }
 }
