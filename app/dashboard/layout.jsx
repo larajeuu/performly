@@ -49,7 +49,12 @@ export default function DashboardLayout({ children }) {
 
       {/* Modal Tambah Karyawan */}
       {showModal && (
-        <TambahKaryawanModal onClose={() => setShowModal(false)} />
+        <TambahKaryawanModal
+            onClose={() => setShowModal(false)}
+            onSuccess={() => {
+              setShowModal(false);
+            }}
+        />
       )}
     </>
   );

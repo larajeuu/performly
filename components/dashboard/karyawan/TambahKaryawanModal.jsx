@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function TambahKaryawanModal({ onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -13,7 +14,8 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
     departemen: "",
     status: "Aktif",
   });
-
+  
+  const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -54,12 +56,14 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
 
       onSuccess?.();
       onClose();
+      router.refresh();
 
     } catch (err) {
       setError("Gagal terhubung ke server");
     } finally {
       setLoading(false);
     }
+
   };
 
   return (

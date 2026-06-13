@@ -64,4 +64,93 @@ export async function GET(request) {
   }
 }
 
+export async function POST(request) {
+  try {
+    const body = await request.json()
+    const {
+      nama_lengkap,
+      nip,
+      email,
+      tanggal_masuk,
+      tanggal_lahir,
+      jabatan,
+      departemen,
+      status
+    } = body
+
+    // 1. Validasi field
+    if (!nama_lengkap || !nip || !email || !tanggal_masuk ||
+        !tanggal_lahir || !jabatan || !departemen) {
+      return NextResponse.json(
+        { message: 'Semua field harus diisi' },
+        { status: 400 }
+      )
+    }
+
+    // 2. Cek duplikat NIP & email
+    const existing = await prisma.user.findFirst({
+      where: { OR: [{ nip }, { email }] }
+    })
+
+    if (existing) {
+      if (existing.nip === nip) {
+        return NextResponse.json(
+          { message: 'NIP sudah terdaftar' },
+          { status: 409 }
+        )
+      }
+      if (existing.email === email) {
+        return NextResponse.json(
+          { message: 'Email sudah terdaftar' },
+          { status: 409 }
+        )
+      }
+    }
+
+    // 3. Generate username & password otomatis
+    const username = nama_lengkap
+      .toLowerCase()
+      .replace(/\s+/g, '.')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+
+    const bcrypt = await import('bcryptjs')
+    const hashedPassword = await bcrypt.default.hash('performly123', 10)
+
+    // 4. Simpan ke User
+    const user = await prisma.user.create({
+      data: {
+        nama_lengkap,
+        nip,
+        email,
+        tanggal_masuk: new Date(tanggal_masuk),
+        tanggal_lahir: new Date(tanggal_lahir),
+        jabatan,
+        username,
+        password: hashedPassword
+      }
+    })
+
+    // 5. Simpan ke Karyawan
+    await prisma.karyawan.create({
+      data: {
+        user_id: user.id,
+        departemen,
+        status: status || 'Aktif'
+      }
+    })
+
+    return NextResponse.json(
+      { message: 'Karyawan berhasil ditambahkan' },
+      { status: 201 }
+    )
+
+  } catch (error) {
+    console.error('Karyawan POST error:', error)
+    return NextResponse.json(
+      { message: 'Terjadi kesalahan server' },
+      { status: 500 }
+    )
+  }
+}
 export const dynamic = 'force-dynamic'
