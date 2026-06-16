@@ -30,7 +30,7 @@ export default function KaryawanTable({ karyawan, loading, onRefresh }) {
   const handleHapus = async (id) => {
     if (!confirm('Yakin ingin menghapus karyawan ini?')) return
     try {
-      const res = await fetch(`/api/karyawan/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/dashboard/karyawan/${id}`, { method: 'DELETE' })
       if (res.ok) onRefresh()
       else alert('Gagal menghapus karyawan')
     } catch (err) {

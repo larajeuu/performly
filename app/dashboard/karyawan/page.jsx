@@ -21,7 +21,7 @@ export default function KaryawanPage() {
       if (filter.status) params.append('status', filter.status)
       if (filter.search) params.append('search', filter.search)
 
-      const res = await fetch(`/api/karyawan?${params.toString()}`)
+      const res = await fetch(`/api/dashboard/karyawan?${params.toString()}`)
       const data = await res.json()
       setKaryawan(data)
     } catch (err) {

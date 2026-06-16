@@ -41,7 +41,7 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/karyawan", {
+      const res = await fetch("/api/dashboard/karyawan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
