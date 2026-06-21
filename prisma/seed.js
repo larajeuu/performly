@@ -3,6 +3,35 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+// ── HELPER: generate semua tanggal Senin-Jumat di suatu bulan ──
+function getHariKerja(tahun, bulan) {
+  const hariKerja = []
+  const jumlahHari = new Date(tahun, bulan, 0).getDate() // total hari di bulan itu
+
+  for (let tanggal = 1; tanggal <= jumlahHari; tanggal++) {
+    const date = new Date(tahun, bulan - 1, tanggal)
+    const hari = date.getDay() // 0 = Minggu, 6 = Sabtu
+
+    if (hari !== 0 && hari !== 6) {
+      hariKerja.push(date.toISOString().split('T')[0]) // format "YYYY-MM-DD"
+    }
+  }
+
+  return hariKerja
+}
+
+// ── HELPER: pilih status absensi secara acak dengan bobot probabilitas ──
+function getRandomStatusAbsensi() {
+  const random = Math.random() * 100
+
+  if (random < 73) return 'Hadir'        // 0 - 73       → 73%
+  if (random < 83) return 'WFH'          // 73 - 83      → 10%
+  if (random < 89) return 'Cuti'         // 83 - 89      → 6%
+  if (random < 95) return 'Izin'         // 89 - 95      → 6%
+  if (random < 99) return 'Sakit'        // 95 - 99      → 4%
+  return 'Alpha'                          // 99 - 100     → 1%
+}
+
 async function main() {
   console.log('🌱 Seeding database...')
 
@@ -190,7 +219,52 @@ async function main() {
       })
     }
   }
-  console.log('✅ Absensi selesai')
+  console.log('✅ Absensi (Mei 2026) selesai')
+
+  // ── 3b. ABSENSI TAMBAHAN (Juni - September 2026) ──
+  // Catatan: data Mei 2026 di atas TIDAK disentuh, supaya Payroll Mei tetap konsisten.
+  // Bulan ini ditambahkan baru dengan status lebih lengkap: Hadir, WFH, Cuti, Izin, Sakit, Alpha
+
+  const bulanTambahan = [
+    { tahun: 2026, bulan: 6 }, // Juni
+    { tahun: 2026, bulan: 7 }, // Juli
+    { tahun: 2026, bulan: 8 }, // Agustus
+    { tahun: 2026, bulan: 9 }, // September
+  ]
+
+  for (const { tahun, bulan } of bulanTambahan) {
+    const hariKerjaBulanIni = getHariKerja(tahun, bulan)
+
+    for (const karyawan of karyawanList) {
+      for (const hari of hariKerjaBulanIni) {
+        const randomStatus = getRandomStatusAbsensi()
+
+        const keteranganMap = {
+          Sakit: 'Sakit demam',
+          Izin: 'Keperluan keluarga',
+          Cuti: 'Cuti tahunan',
+          WFH: 'Work From Home',
+        }
+
+        await prisma.absensi.upsert({
+          where: {
+            karyawan_id_tanggal: {
+              karyawan_id: karyawan.id,
+              tanggal: new Date(hari)
+            }
+          },
+          update: {},
+          create: {
+            karyawan_id: karyawan.id,
+            tanggal: new Date(hari),
+            status: randomStatus,
+            keterangan: keteranganMap[randomStatus] || null
+          }
+        })
+      }
+    }
+    console.log(`✅ Absensi (${bulan}/${tahun}) selesai`)
+  }
 
   // ── 4. KPI (Kuartal 1 & 2 2026) ──
   for (const karyawan of karyawanList) {
