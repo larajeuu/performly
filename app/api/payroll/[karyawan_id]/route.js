@@ -36,16 +36,17 @@ export async function GET(request, { params }) {
         })
 
         return NextResponse.json({
-            karyawan: {
+                karyawan: {
                 nama_lengkap: karyawan.user.nama_lengkap,
-                jabatam: karyawan.user.jabatan,
+                nip: karyawan.user.nip,
+                jabatan: karyawan.user.jabatan,
                 departemen: karyawan.departemen,
             },
-            periode: {
+                periode: {
                 bulan: payroll.bulan,
                 tahun: payroll.tahun,
             },
-            rincian_gaji: {
+                rincian_gaji: {
                 gaji_pokok: payroll.gaji_pokok,
                 tunjangan: payroll.tunjangan,
                 uang_lembur: payroll.uang_lembur,
@@ -55,13 +56,13 @@ export async function GET(request, { params }) {
                 potongan_absensi: payroll.potongan_absensi,
                 gaji_bersih: payroll.gaji_bersih,
             },
-            bonus_kpi: {
+                bonus_kpi: {
                 pencapaian_kpi: kpi?.skor_akhir ?? null,
                 bonus_lainnya: payroll.bonus_lainnya,
             },
-            total_kompensasi: payroll.gaji_bersih + payroll.bonus_lainnya
+                total_kompensasi: payroll.gaji_bersih + payroll.bonus_lainnya
         })
-
+    
     } catch (error) {
         console.error('Payroll Detail GET Error: ', error)
         return NextResponse.json(

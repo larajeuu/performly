@@ -1,5 +1,8 @@
 "use client";
 
+import { generateSlipPDF } from "./generateSlipPDF";
+import { useState } from "react";
+
 const bulanNama = [
     '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
@@ -10,6 +13,19 @@ function formatRupiah(angka) {
 }
 
 export default function PayrollDetail({ detail, loading, hasSelection }) {
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      await generateSlipPDF(detail);
+    } catch (error) {
+      console.error("Gagal generate PDF: ", error);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <>
       <style>{`
@@ -104,6 +120,29 @@ export default function PayrollDetail({ detail, loading, hasSelection }) {
           border-radius: 40px;
           margin-bottom: 16px;
         }
+
+        .btn-download-slip {
+          width: 100%;
+          margin-top: 16px;
+          background: linear-gradient(90deg, #4A5FD4, #6B7FE8);
+          border: none;
+          border-radius: 10px;
+          padding: 11px;
+          font-size: 13px;
+          font-weight: 600;
+          color: #fff;
+          cursor: pointer;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          transition: opacity 0.2s, transform 0.15s;
+        }
+        .btn-download-slip:hover:not(:disabled) {
+          opacity: 0.9;
+          transform: translateY(-1px);
+        }
+        .btn-download-slip:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
       `}</style>
 
       {!hasSelection ? (
@@ -184,6 +223,14 @@ export default function PayrollDetail({ detail, loading, hasSelection }) {
               <span className="total-label">Total Kompensasi</span>
               <span className="total-value">{formatRupiah(detail.total_kompensasi)}</span>
             </div>
+
+            <button
+              className="btn-download-slip"
+              onClick={handleDownload}
+              disabled={downloading}
+            >
+              {downloading ? "Membuat PDF..." : "📄 Unduh Slip Gaji"}
+            </button>
           </div>
         </div>
       )}
