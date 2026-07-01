@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function TambahKaryawanModal({ onClose, onSuccess }) {
+export default function EditKaryawanModal({ karyawanId, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     nama_lengkap: "",
     nip: "",
@@ -14,14 +14,52 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
     departemen: "",
     status: "Aktif",
   });
-  
+
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   const jabatanOptions = ['HR', 'Manager', 'Staff', 'Supervisor', 'Operasional'];
   const departemenOptions = ['HR', 'IT', 'Marketing', 'Finance', 'Operasional'];
   const statusOptions = ['Aktif', 'Tidak Aktif'];
+
+  // Ambil data karyawan yang mau diedit saat modal dibuka
+  useEffect(() => {
+    const fetchKaryawan = async () => {
+      setFetching(true);
+      try {
+        const res = await fetch(`/api/karyawan/${karyawanId}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          setError(data.message || "Gagal mengambil data karyawan");
+          return;
+        }
+
+        setFormData({
+          nama_lengkap: data.user.nama_lengkap || "",
+          nip: data.user.nip || "",
+          email: data.user.email || "",
+          tanggal_masuk: data.user.tanggal_masuk
+            ? data.user.tanggal_masuk.split("T")[0]
+            : "",
+          tanggal_lahir: data.user.tanggal_lahir
+            ? data.user.tanggal_lahir.split("T")[0]
+            : "",
+          jabatan: data.user.jabatan || "",
+          departemen: data.departemen || "",
+          status: data.status || "Aktif",
+        });
+      } catch (err) {
+        setError("Gagal terhubung ke server");
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchKaryawan();
+  }, [karyawanId]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -31,7 +69,7 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
     e.preventDefault();
     setError("");
 
-    const required = ['nama_lengkap', 'nip', 'email', 'tanggal_masuk', 'tanggal_lahir', 'jabatan', 'departemen'];
+    const required = ['nama_lengkap', 'nip', 'email', 'tanggal_lahir', 'jabatan', 'departemen'];
     for (const field of required) {
       if (!formData[field]) {
         setError("Semua field harus diisi");
@@ -41,8 +79,8 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/karyawan", {
-        method: "POST",
+      const res = await fetch(`/api/karyawan/${karyawanId}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
@@ -63,7 +101,6 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
     } finally {
       setLoading(false);
     }
-
   };
 
   return (
@@ -134,6 +171,16 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
           box-shadow: 0 0 0 3px rgba(79,100,241,0.1);
         }
         .modal-field select option { background: #1a2a6e; color: #E8EEFF; }
+        .modal-field input:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        .field-hint {
+          font-size: 11px;
+          color: #5A6488;
+          margin-top: 4px;
+          font-style: italic;
+        }
         .error-box {
           background: rgba(239,68,68,0.1);
           border: 1px solid rgba(239,68,68,0.2);
@@ -161,116 +208,127 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
         }
         .btn-simpan:hover:not(:disabled) { opacity: 0.9; }
         .btn-simpan:disabled { opacity: 0.55; cursor: not-allowed; }
+        .loading-state {
+          text-align: center;
+          padding: 40px 0;
+          color: #7B8FCC;
+          font-size: 13.5px;
+        }
       `}</style>
 
       <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
         <div className="modal-card">
           <div className="modal-header">
-            <div className="modal-title">Tambah Karyawan Baru</div>
+            <div className="modal-title">Edit Data Karyawan</div>
             <button className="btn-close" onClick={onClose}>✕</button>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate>
+          {fetching ? (
+            <div className="loading-state">Memuat data karyawan...</div>
+          ) : (
+            <form onSubmit={handleSubmit} noValidate>
 
-            {/* Nama Lengkap */}
-            <div className="modal-field">
-              <label>Nama Lengkap</label>
-              <input
-                type="text"
-                name="nama_lengkap"
-                value={formData.nama_lengkap}
-                onChange={handleChange}
-                autoFocus
-              />
-            </div>
-
-            {/* NIP & Email */}
-            <div className="modal-row">
+              {/* Nama Lengkap */}
               <div className="modal-field">
-                <label>NIP</label>
+                <label>Nama Lengkap</label>
                 <input
                   type="text"
-                  name="nip"
-                  value={formData.nip}
+                  name="nama_lengkap"
+                  value={formData.nama_lengkap}
                   onChange={handleChange}
+                  autoFocus
                 />
               </div>
-              <div className="modal-field">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
 
-            {/* Tanggal Masuk & Tanggal Lahir */}
-            <div className="modal-row">
-              <div className="modal-field">
-                <label>Tanggal Masuk</label>
-                <input
-                  type="date"
-                  name="tanggal_masuk"
-                  value={formData.tanggal_masuk}
-                  onChange={handleChange}
-                />
+              {/* NIP & Email */}
+              <div className="modal-row">
+                <div className="modal-field">
+                  <label>NIP</label>
+                  <input
+                    type="text"
+                    name="nip"
+                    value={formData.nip}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="modal-field">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
-              <div className="modal-field">
-                <label>Tanggal Lahir</label>
-                <input
-                  type="date"
-                  name="tanggal_lahir"
-                  value={formData.tanggal_lahir}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
 
-            {/* Jabatan & Departemen */}
-            <div className="modal-row">
+              {/* Tanggal Masuk (readonly) & Tanggal Lahir */}
+              <div className="modal-row">
+                <div className="modal-field">
+                  <label>Tanggal Masuk</label>
+                  <input
+                    type="date"
+                    name="tanggal_masuk"
+                    value={formData.tanggal_masuk}
+                    disabled
+                  />
+                  <div className="field-hint">Tidak dapat diubah</div>
+                </div>
+                <div className="modal-field">
+                  <label>Tanggal Lahir</label>
+                  <input
+                    type="date"
+                    name="tanggal_lahir"
+                    value={formData.tanggal_lahir}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              {/* Jabatan & Departemen */}
+              <div className="modal-row">
+                <div className="modal-field">
+                  <label>Jabatan</label>
+                  <select name="jabatan" value={formData.jabatan} onChange={handleChange}>
+                    <option value="">Pilih Jabatan</option>
+                    {jabatanOptions.map(j => (
+                      <option key={j} value={j}>{j}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="modal-field">
+                  <label>Departemen</label>
+                  <select name="departemen" value={formData.departemen} onChange={handleChange}>
+                    <option value="">Pilih Departemen</option>
+                    {departemenOptions.map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Status */}
               <div className="modal-field">
-                <label>Jabatan</label>
-                <select name="jabatan" value={formData.jabatan} onChange={handleChange}>
-                  <option value="">Pilih Jabatan</option>
-                  {jabatanOptions.map(j => (
-                    <option key={j} value={j}>{j}</option>
+                <label>Status</label>
+                <select name="status" value={formData.status} onChange={handleChange}>
+                  {statusOptions.map(s => (
+                    <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
               </div>
-              <div className="modal-field">
-                <label>Departemen</label>
-                <select name="departemen" value={formData.departemen} onChange={handleChange}>
-                  <option value="">Pilih Departemen</option>
-                  {departemenOptions.map(d => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
+
+              {error && <div className="error-box">{error}</div>}
+
+              <div className="modal-footer">
+                <button type="button" className="btn-batal" onClick={onClose}>
+                  Batal
+                </button>
+                <button type="submit" className="btn-simpan" disabled={loading}>
+                  {loading ? "Menyimpan..." : "Simpan Perubahan"}
+                </button>
               </div>
-            </div>
-
-            {/* Status */}
-            <div className="modal-field">
-              <label>Status</label>
-              <select name="status" value={formData.status} onChange={handleChange}>
-                {statusOptions.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-
-            {error && <div className="error-box">{error}</div>}
-
-            <div className="modal-footer">
-              <button type="button" className="btn-batal" onClick={onClose}>
-                Batal
-              </button>
-              <button type="submit" className="btn-simpan" disabled={loading}>
-                {loading ? "Menyimpan..." : "Simpan Karyawan"}
-              </button>
-            </div>
-          </form>
+            </form>
+          )}
         </div>
       </div>
     </>

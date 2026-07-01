@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import EditKaryawanModal from "./EditKaryawanModal";
+
 const jabatanColors = {
   'HR': { bg: 'rgba(74,95,212,0.2)', color: '#A0B0FF' },
   'Manager': { bg: 'rgba(168,85,247,0.15)', color: '#C084FC' },
@@ -26,11 +29,12 @@ function getInisial(nama) {
 }
 
 export default function KaryawanTable({ karyawan, loading, onRefresh }) {
+  const [editingId, setEditingId] = useState(null);
 
   const handleHapus = async (id) => {
     if (!confirm('Yakin ingin menghapus karyawan ini?')) return
     try {
-      const res = await fetch(`/api/dashboard/karyawan/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/karyawan/${id}`, { method: 'DELETE' })
       if (res.ok) onRefresh()
       else alert('Gagal menghapus karyawan')
     } catch (err) {
@@ -156,6 +160,14 @@ export default function KaryawanTable({ karyawan, loading, onRefresh }) {
         .btn-edit:hover { background: rgba(74,95,212,0.2); }
         .btn-hapus:hover { background: rgba(239,68,68,0.15); }
 
+        .btn-aksi:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+        .btn-aksi:disabled:hover {
+          background: transparent;
+        }
+
         .empty-state {
           padding: 60px 20px;
           text-align: center;
@@ -197,6 +209,7 @@ export default function KaryawanTable({ karyawan, loading, onRefresh }) {
                   color: '#A0B0FF'
                 }
                 const kpiColor = k.kpi >= 85 ? 'kpi-high' : k.kpi >= 70 ? 'kpi-mid' : 'kpi-low'
+                const isAktif = k.status === 'Aktif'
 
                 return (
                   <tr key={k.id}>
@@ -245,8 +258,8 @@ export default function KaryawanTable({ karyawan, loading, onRefresh }) {
 
                     {/* Status */}
                     <td>
-                      <span className={`badge-status ${k.status === 'Aktif' ? 'aktif' : 'nonaktif'}`}>
-                        <span className={`dot ${k.status === 'Aktif' ? 'dot-aktif' : 'dot-nonaktif'}`} />
+                      <span className={`badge-status ${isAktif ? 'aktif' : 'nonaktif'}`}>
+                        <span className={`dot ${isAktif ? 'dot-aktif' : 'dot-nonaktif'}`} />
                         {k.status}
                       </span>
                     </td>
@@ -254,9 +267,14 @@ export default function KaryawanTable({ karyawan, loading, onRefresh }) {
                     {/* Aksi */}
                     <td>
                       <div className="aksi-wrap">
-                        <button className="btn-aksi btn-edit" title="Edit">
+                        <button
+                          className="btn-aksi btn-edit"
+                          title={isAktif ? "Edit" : "Karyawan nonaktif tidak dapat diedit"}
+                          disabled={!isAktif}
+                          onClick={() => setEditingId(k.id)}
+                        >
                           <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-                            <path d="M10.5 2L13 4.5L5 12.5H2.5V10L10.5 2Z" stroke="#6B7FE8" strokeWidth="1.5" strokeLinejoin="round"/>
+                            <path d="M10.5 2L13 4.5L5 12.5H2.5V10L10.5 2Z" stroke={isAktif ? "#6B7FE8" : "#4A5888"} strokeWidth="1.5" strokeLinejoin="round"/>
                           </svg>
                         </button>
                         <button
@@ -277,6 +295,14 @@ export default function KaryawanTable({ karyawan, loading, onRefresh }) {
           </table>
         )}
       </div>
+
+      {editingId && (
+        <EditKaryawanModal
+          karyawanId={editingId}
+          onClose={() => setEditingId(null)}
+          onSuccess={onRefresh}
+        />
+      )}
     </>
   );
 }

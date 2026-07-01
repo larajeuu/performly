@@ -34,9 +34,6 @@ export async function PUT(request, { params }) {
     const { id: idStr } = await params
     const id = parseInt(idStr)
     const body = await request.json()
-    console.log('body:', body)
-    console.log('tanggal_masuk:', body.tanggal_masuk)
-    console.log('tanggal_lahir:', body.tanggal_lahir)
 
     const {
       nama_lengkap,
