@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function Sidebar({ isOpen, setIsOpen }) {
+export default function Sidebar({ isOpen, setIsOpen, user }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -287,8 +287,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             <div className="profile-box">
               <div className="profile-avatar">👤</div>
               <div className="profile-info">
-                <div className="profile-name">Nama Lengkap</div>
-                <div className="profile-role">HR</div>
+                <div className="profile-name">{user?.nama_lengkap || "User"}</div>
+                <div className="profile-role">{user?.jabatan || "-"}</div>
               </div>
               {isOpen && (
                 <button className="btn-logout-icon" onClick={handleLogout}>
