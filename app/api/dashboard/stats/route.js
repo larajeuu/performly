@@ -6,8 +6,8 @@ export async function GET() {
     const sekarang = new Date()
     const bulanIni = sekarang.getMonth() + 1
     const tahunIni = sekarang.getFullYear()
-    const kuartalIni = Math.ceil(bulanIni / 3)
 
+    // Cari periode payroll terbaru yang beneran ada datanya
     const payrollTerbaru = await prisma.payroll.findFirst({
       orderBy: [{ tahun: 'desc' }, { bulan: 'desc' }]
     })
@@ -15,16 +15,24 @@ export async function GET() {
     const bulanQuery = payrollTerbaru?.bulan ?? bulanIni
     const tahunQuery = payrollTerbaru?.tahun ?? tahunIni
 
+    // Cari periode KPI terbaru yang beneran ada datanya
+    const kpiTerbaru = await prisma.kPI.findFirst({
+      orderBy: [{ tahun: 'desc' }, { kuartal: 'desc' }]
+    })
+
+    const kuartalIni = kpiTerbaru?.kuartal ?? Math.ceil(bulanIni / 3)
+    const tahunKpiIni = kpiTerbaru?.tahun ?? tahunIni
+
     // 1. Karyawan Aktif
     const karyawanAktif = await prisma.karyawan.count({
       where: { status: 'Aktif' }
     })
 
-    // 2. Rata-rata KPI kuartal ini
+    // 2. Rata-rata KPI kuartal terbaru
     const kpiData = await prisma.kPI.findMany({
       where: {
         kuartal: kuartalIni,
-        tahun: tahunIni
+        tahun: tahunKpiIni
       }
     })
 
@@ -32,7 +40,7 @@ export async function GET() {
       ? Math.round(kpiData.reduce((sum, k) => sum + k.skor_akhir, 0) / kpiData.length)
       : 0
 
-    // 3. Total gaji bulan ini
+    // 3. Total gaji bulan terbaru
     const payrollData = await prisma.payroll.findMany({
       where: {
         bulan: bulanQuery,
@@ -42,7 +50,7 @@ export async function GET() {
 
     const totalGaji = payrollData.reduce((sum, p) => sum + p.gaji_bersih, 0)
 
-    // 4. Absensi harian (hari ini)
+    // 4. Absensi harian (tetap pakai tanggal hari ini, bukan periode data terbaru)
     const hariIni = new Date()
     hariIni.setHours(0, 0, 0, 0)
     const besok = new Date(hariIni)
@@ -67,14 +75,14 @@ export async function GET() {
       ? Math.round(kpiData.reduce((sum, k) => sum + k.skor_akhir, 0) / kpiData.length * 10) / 10
       : 0
 
-    // 6. KPI per departemen
+    // 6. KPI per departemen (kuartal terbaru yang ada datanya)
     const karyawanDenganKPI = await prisma.karyawan.findMany({
       where: { status: 'Aktif' },
       include: {
         kpi: {
           where: {
             kuartal: kuartalIni,
-            tahun: tahunIni
+            tahun: tahunKpiIni
           }
         }
       }
