@@ -51,7 +51,6 @@ export default function PengaturanTabs({ initialUser }) {
       `}</style>
 
       <div className="pengaturan-header">
-        <div className="pengaturan-title">Pengaturan</div>
         <div className="pengaturan-subtitle">Kelola informasi akun dan keamanan kamu</div>
       </div>
 
