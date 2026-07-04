@@ -14,31 +14,69 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
     departemen: "",
     status: "Aktif",
   });
-  
+
   const router = useRouter();
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});       // ← ganti dari string jadi object
+  const [serverError, setServerError] = useState(""); // ← khusus error dari API (misal NIP duplikat)
   const [loading, setLoading] = useState(false);
 
   const jabatanOptions = ['HR', 'Manager', 'Staff', 'Supervisor', 'Operasional'];
   const departemenOptions = ['HR', 'IT', 'Marketing', 'Finance', 'Operasional'];
   const statusOptions = ['Aktif', 'Tidak Aktif'];
 
+  const fieldLabels = {
+    nama_lengkap: "Nama lengkap",
+    nip: "NIP",
+    email: "Email",
+    tanggal_masuk: "Tanggal masuk",
+    tanggal_lahir: "Tanggal lahir",
+    jabatan: "Jabatan",
+    departemen: "Departemen",
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    // Hapus error field ini begitu user mulai ngetik lagi — UX lebih responsif,
+    // user gak perlu submit ulang cuma buat "membersihkan" pesan error yang udah dia perbaiki
+    if (errors[name]) {
+      setErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[name];
+        return updated;
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    Object.keys(fieldLabels).forEach((field) => {
+      if (!formData[field]) {
+        newErrors[field] = `${fieldLabels[field]} wajib diisi`;
+      }
+    });
+
+    // Validasi tambahan: format email (best practice, bukan cuma "kosong/tidak")
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Format email tidak valid";
+    }
+
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setServerError("");
 
-    const required = ['nama_lengkap', 'nip', 'email', 'tanggal_masuk', 'tanggal_lahir', 'jabatan', 'departemen'];
-    for (const field of required) {
-      if (!formData[field]) {
-        setError("Semua field harus diisi");
-        return;
-      }
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return; // stop di sini, jangan lanjut fetch ke API
     }
 
+    setErrors({});
     setLoading(true);
     try {
       const res = await fetch("/api/karyawan", {
@@ -50,20 +88,18 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message || "Terjadi kesalahan");
+        setServerError(data.message || "Terjadi kesalahan");
         return;
       }
 
       onSuccess?.();
       onClose();
       router.refresh();
-
     } catch (err) {
-      setError("Gagal terhubung ke server");
+      setServerError("Gagal terhubung ke server");
     } finally {
       setLoading(false);
     }
-
   };
 
   return (
@@ -133,7 +169,16 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
           border-color: rgba(100,130,255,0.4);
           box-shadow: 0 0 0 3px rgba(79,100,241,0.1);
         }
+        .modal-field input.input-error,
+        .modal-field select.input-error {
+          border-color: rgba(239,68,68,0.5);
+        }
         .modal-field select option { background: #1a2a6e; color: #E8EEFF; }
+        .field-error {
+          font-size: 11.5px;
+          color: #FCA5A5;
+          margin-top: 5px;
+        }
         .error-box {
           background: rgba(239,68,68,0.1);
           border: 1px solid rgba(239,68,68,0.2);
@@ -172,7 +217,6 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
 
           <form onSubmit={handleSubmit} noValidate>
 
-            {/* Nama Lengkap */}
             <div className="modal-field">
               <label>Nama Lengkap</label>
               <input
@@ -180,11 +224,12 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
                 name="nama_lengkap"
                 value={formData.nama_lengkap}
                 onChange={handleChange}
+                className={errors.nama_lengkap ? "input-error" : ""}
                 autoFocus
               />
+              {errors.nama_lengkap && <div className="field-error">{errors.nama_lengkap}</div>}
             </div>
 
-            {/* NIP & Email */}
             <div className="modal-row">
               <div className="modal-field">
                 <label>NIP</label>
@@ -193,7 +238,9 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
                   name="nip"
                   value={formData.nip}
                   onChange={handleChange}
+                  className={errors.nip ? "input-error" : ""}
                 />
+                {errors.nip && <div className="field-error">{errors.nip}</div>}
               </div>
               <div className="modal-field">
                 <label>Email</label>
@@ -202,11 +249,12 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  className={errors.email ? "input-error" : ""}
                 />
+                {errors.email && <div className="field-error">{errors.email}</div>}
               </div>
             </div>
 
-            {/* Tanggal Masuk & Tanggal Lahir */}
             <div className="modal-row">
               <div className="modal-field">
                 <label>Tanggal Masuk</label>
@@ -215,7 +263,9 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
                   name="tanggal_masuk"
                   value={formData.tanggal_masuk}
                   onChange={handleChange}
+                  className={errors.tanggal_masuk ? "input-error" : ""}
                 />
+                {errors.tanggal_masuk && <div className="field-error">{errors.tanggal_masuk}</div>}
               </div>
               <div className="modal-field">
                 <label>Tanggal Lahir</label>
@@ -224,33 +274,45 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
                   name="tanggal_lahir"
                   value={formData.tanggal_lahir}
                   onChange={handleChange}
+                  className={errors.tanggal_lahir ? "input-error" : ""}
                 />
+                {errors.tanggal_lahir && <div className="field-error">{errors.tanggal_lahir}</div>}
               </div>
             </div>
 
-            {/* Jabatan & Departemen */}
             <div className="modal-row">
               <div className="modal-field">
                 <label>Jabatan</label>
-                <select name="jabatan" value={formData.jabatan} onChange={handleChange}>
+                <select
+                  name="jabatan"
+                  value={formData.jabatan}
+                  onChange={handleChange}
+                  className={errors.jabatan ? "input-error" : ""}
+                >
                   <option value="">Pilih Jabatan</option>
                   {jabatanOptions.map(j => (
                     <option key={j} value={j}>{j}</option>
                   ))}
                 </select>
+                {errors.jabatan && <div className="field-error">{errors.jabatan}</div>}
               </div>
               <div className="modal-field">
                 <label>Departemen</label>
-                <select name="departemen" value={formData.departemen} onChange={handleChange}>
+                <select
+                  name="departemen"
+                  value={formData.departemen}
+                  onChange={handleChange}
+                  className={errors.departemen ? "input-error" : ""}
+                >
                   <option value="">Pilih Departemen</option>
                   {departemenOptions.map(d => (
                     <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
+                {errors.departemen && <div className="field-error">{errors.departemen}</div>}
               </div>
             </div>
 
-            {/* Status */}
             <div className="modal-field">
               <label>Status</label>
               <select name="status" value={formData.status} onChange={handleChange}>
@@ -260,7 +322,7 @@ export default function TambahKaryawanModal({ onClose, onSuccess }) {
               </select>
             </div>
 
-            {error && <div className="error-box">{error}</div>}
+            {serverError && <div className="error-box">{serverError}</div>}
 
             <div className="modal-footer">
               <button type="button" className="btn-batal" onClick={onClose}>
