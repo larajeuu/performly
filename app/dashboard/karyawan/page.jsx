@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import KaryawanTable from "@/components/dashboard/karyawan/KaryawanTable";
 import KaryawanFilter from "@/components/dashboard/karyawan/KaryawanFilter";
 
 export default function KaryawanPage() {
+  const searchParams = useSearchParams();
   const [karyawan, setKaryawan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({
@@ -12,6 +14,11 @@ export default function KaryawanPage() {
     status: '',
     search: ''
   });
+
+  useEffect(() => {
+    const searchFromUrl = searchParams.get("search") || "";
+    setFilter((prev) => ({ ...prev, search: searchFromUrl }));
+  }, [searchParams]);
 
   const fetchKaryawan = async () => {
     setLoading(true);

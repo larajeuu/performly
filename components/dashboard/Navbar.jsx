@@ -1,9 +1,11 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function Navbar({ onTambah }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const pageTitle = {
     "/dashboard": "Dashboard",
@@ -15,6 +17,20 @@ export default function Navbar({ onTambah }) {
   };
 
   const isKaryawanPage = pathname === "/dashboard/karyawan";
+  const searchValue = searchParams.get("search") || "";
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (value) {
+      params.set("search", value);
+    } else {
+      params.delete("search");
+    }
+
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
   return (
     <>
@@ -63,10 +79,6 @@ export default function Navbar({ onTambah }) {
           box-shadow: 0 0 0 3px rgba(79,100,241,0.1);
         }
         .search-input::placeholder { color: #4A5888; }
-        .search-input:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
-        }
         .btn-tambah {
           display: flex; align-items: center; gap: 8px;
           background: linear-gradient(90deg, #4A5FD4, #6B7FE8);
@@ -89,28 +101,24 @@ export default function Navbar({ onTambah }) {
         </div>
 
         <div className="navbar-right">
-          {/* Search — hanya aktif di halaman karyawan */}
-          <div className="search-wrap">
-            <span className="search-icon">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <circle cx="6.5" cy="6.5" r="5" stroke="#6B7FCC" strokeWidth="1.5"/>
-                <path d="M10.5 10.5L14 14" stroke="#6B7FCC" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </span>
-            <input
-              type="text"
-              className="search-input"
-              placeholder={isKaryawanPage ? "Cari Data Karyawan..." : "Cari Data Karyawan..."}
-              disabled={!isKaryawanPage}
-              onChange={() => {
-                if (isKaryawanPage && onTambah) {
-                  // nanti dihandle via prop onSearch
-                }
-              }}
-            />
-          </div>
+          {isKaryawanPage && (
+            <div className="search-wrap">
+              <span className="search-icon">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <circle cx="6.5" cy="6.5" r="5" stroke="#6B7FCC" strokeWidth="1.5"/>
+                  <path d="M10.5 10.5L14 14" stroke="#6B7FCC" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </span>
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Cari Data Karyawan..."
+                value={searchValue}
+                onChange={handleSearchChange}
+              />
+            </div>
+          )}
 
-          {/* Tambah Karyawan — hanya muncul di halaman karyawan */}
           {isKaryawanPage && (
             <button className="btn-tambah" onClick={onTambah}>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
